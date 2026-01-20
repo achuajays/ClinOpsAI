@@ -1,8 +1,10 @@
 <div align="center">
 
-![ClinOps AI Banner](./image.png)
 
 # 🏥 ClinOps AI
+
+![ClinOps AI Banner](./image.png)
+
 
 ### Autonomous Intelligence System for Medical Document Decisions
 
