@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # ClinOps AI Application
   clinops-ai:
     build: .
     container_name: clinops-ai
@@ -8,8 +9,17 @@ services:
       - "8000:8000"
     environment:
       - GROQ_API_KEY=${GROQ_API_KEY}
+      - LOG_LEVEL=DEBUG
     volumes:
       - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    networks:
+      - clinops-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      logstash:
+        condition: service_started
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -17,3 +27,110 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Elasticsearch - Log Storage
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - clinops-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  # Logstash - Log Processing
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: logstash
+    ports:
+      - "5000:5000/tcp"
+      - "5000:5000/udp"
+      - "9600:9600"
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./logs:/logs:ro
+    environment:
+      - "LS_JAVA_OPTS=-Xms256m -Xmx256m"
+    networks:
+      - clinops-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Kibana - Log Visualization
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+    volumes:
+      - kibana-data:/usr/share/kibana/data
+    networks:
+      - clinops-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  # Filebeat - Log Shipper (Optional)
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.11.0
+    container_name: filebeat
+    user: root
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./logs:/logs:ro
+      - filebeat-data:/usr/share/filebeat/data
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: filebeat -e -strict.perms=false
+    networks:
+      - clinops-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      logstash:
+        condition: service_started
+    restart: unless-stopped
+
+networks:
+  clinops-network:
+    driver: bridge
+
+volumes:
+  elasticsearch-data:
+    driver: local
+  kibana-data:
+    driver: local
+  filebeat-data:
+    driver: local
