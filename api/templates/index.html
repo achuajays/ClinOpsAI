@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClinOps AI - Medical Document Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        medical: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .urgency-emergency {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .urgency-high {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+        }
+
+        .urgency-routine {
+            background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+        }
+
+        .urgency-info {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pulse-glow {
+            animation: pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulseGlow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+            }
+
+            50% {
+                box-shadow: 0 0 40px rgba(102, 126, 234, 0.8);
+            }
+        }
+
+        /* Markdown content styling */
+        .markdown-content {
+            line-height: 1.7;
+        }
+
+        .markdown-content h1,
+        .markdown-content h2,
+        .markdown-content h3 {
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .markdown-content p {
+            margin-bottom: 1rem;
+        }
+
+        .markdown-content ul,
+        .markdown-content ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+            list-style-type: disc;
+        }
+
+        .markdown-content ol {
+            list-style-type: decimal;
+        }
+
+        .markdown-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .markdown-content strong {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .markdown-content code {
+            background-color: #f3f4f6;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        .markdown-content pre {
+            background-color: #1f2937;
+            color: #f9fafb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin-bottom: 1rem;
+        }
+
+        .markdown-content blockquote {
+            border-left: 4px solid #667eea;
+            padding-left: 1rem;
+            margin-bottom: 1rem;
+            color: #6b7280;
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 min-h-screen">
+    <!-- Header -->
+    <div class="gradient-bg py-6 shadow-2xl">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center">
+                        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-white">ClinOps AI</h1>
+                        <p class="text-purple-200 text-sm">Medical Document Decision Intelligence</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="glass-effect px-4 py-2 rounded-lg">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                            <span class="text-white text-sm font-medium">System Active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Input Section -->
+            <div class="space-y-6">
+                <div class="bg-white rounded-2xl shadow-2xl p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">📄 Document Input</h2>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Medical Document Text</label>
+                            <textarea id="documentText" rows="12"
+                                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all resize-none"
+                                placeholder="Paste medical document text here...
+
+Example:
+Patient presents with chest pain, elevated Troponin levels (0.8 ng/mL). 
+ECG shows ST elevation. Immediate cardiology consult recommended."></textarea>
+                        </div>
+
+                        <div class="flex items-center justify-center w-full">
+                            <label
+                                class="w-full flex flex-col items-center px-4 py-6 bg-gradient-to-r from-purple-50 to-blue-50 text-purple-600 rounded-xl border-2 border-dashed border-purple-300 cursor-pointer hover:bg-purple-100 transition-all">
+                                <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                    </path>
+                                </svg>
+                                <span class="text-sm font-medium">Or upload a text file</span>
+                                <input id="fileInput" type="file" class="hidden" accept=".txt" />
+                            </label>
+                        </div>
+
+                        <button id="analyzeBtn"
+                            class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:from-purple-700 hover:to-blue-700 transform hover:scale-105 transition-all shadow-lg pulse-glow">
+                            🧠 Analyze Document
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Example Documents -->
+                <div class="bg-white rounded-2xl shadow-2xl p-6">
+                    <h3 class="text-lg font-bold text-gray-800 mb-3">💡 Try Example Documents</h3>
+                    <div class="space-y-2">
+                        <button
+                            class="example-btn w-full text-left px-4 py-3 bg-gray-50 hover:bg-purple-50 rounded-lg transition-all border border-gray-200 hover:border-purple-300">
+                            <div class="font-medium text-gray-800">🚨 Emergency: Cardiac Event</div>
+                            <div class="text-xs text-gray-500">Elevated Troponin, ST elevation</div>
+                        </button>
+                        <button
+                            class="example-btn w-full text-left px-4 py-3 bg-gray-50 hover:bg-purple-50 rounded-lg transition-all border border-gray-200 hover:border-purple-300">
+                            <div class="font-medium text-gray-800">⚠️ High Priority: Lab Results</div>
+                            <div class="text-xs text-gray-500">Abnormal kidney function</div>
+                        </button>
+                        <button
+                            class="example-btn w-full text-left px-4 py-3 bg-gray-50 hover:bg-purple-50 rounded-lg transition-all border border-gray-200 hover:border-purple-300">
+                            <div class="font-medium text-gray-800">📋 Routine: Follow-up Note</div>
+                            <div class="text-xs text-gray-500">Standard consultation</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="space-y-6">
+                <!-- Loading State -->
+                <div id="loadingState" class="hidden bg-white rounded-2xl shadow-2xl p-8">
+                    <div class="flex flex-col items-center justify-center space-y-4">
+                        <div
+                            class="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin">
+                        </div>
+                        <div class="text-center">
+                            <h3 class="text-xl font-bold text-gray-800">Analyzing Document...</h3>
+                            <p class="text-gray-500 mt-2">Our AI agents are processing your medical document</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Display -->
+                <div id="resultsContainer" class="hidden space-y-6 animate-fade-in">
+                    <!-- Urgency Badge -->
+                    <div id="urgencyCard" class="rounded-2xl shadow-2xl p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-sm font-medium opacity-90">Clinical Urgency Level</div>
+                                <div id="urgencyLevel" class="text-3xl font-bold mt-1">🟥 Emergency</div>
+                            </div>
+                            <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                        clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Decision & Analysis -->
+                    <div class="bg-white rounded-2xl shadow-2xl p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">🎯 Recommended Action</h3>
+                        <div id="decisionContent" class="markdown-content text-gray-700">
+                            <!-- Decision content will be inserted here -->
+                        </div>
+                    </div>
+
+                    <!-- Analysis Details -->
+                    <div class="bg-white rounded-2xl shadow-2xl p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">📊 Full Analysis</h3>
+                        <div id="analysisContent" class="markdown-content text-gray-700">
+                            <!-- Analysis content will be inserted here -->
+                        </div>
+                    </div>
+
+                    <!-- Document Info -->
+                    <div class="bg-white rounded-2xl shadow-2xl p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">📋 Document Information</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Document Type:</span>
+                                <span id="docType" class="font-medium text-gray-800">Lab Report</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Status:</span>
+                                <span id="docStatus"
+                                    class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Completed</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Initial State -->
+                <div id="initialState" class="bg-white rounded-2xl shadow-2xl p-12">
+                    <div class="text-center">
+                        <div
+                            class="w-24 h-24 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-12 h-12 text-purple-600" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                </path>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">Ready to Analyze</h3>
+                        <p class="text-gray-500">Enter medical document text or upload a file to begin intelligent
+                            analysis</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const examples = {
+            emergency: `Patient: John Doe, Age 58
+Chief Complaint: Severe chest pain
+
+FINDINGS:
+- Chest pain radiating to left arm
+- Elevated Troponin I: 0.8 ng/mL (Normal: <0.04)
+- ECG shows ST-segment elevation in leads II, III, aVF
+- Blood pressure: 160/95 mmHg
+- Heart rate: 110 bpm
+
+IMPRESSION: Acute myocardial infarction suspected. STAT cardiology consult recommended.`,
+
+            highPriority: `Patient: Jane Smith, Age 42
+Lab Results - Comprehensive Metabolic Panel
+
+ABNORMAL VALUES:
+- Creatinine: 2.8 mg/dL (Normal: 0.6-1.2) - ELEVATED
+- BUN: 45 mg/dL (Normal: 7-20) - ELEVATED
+- eGFR: 28 mL/min (Normal: >60) - DECREASED
+
+IMPRESSION: Significant decline in kidney function. Nephrology referral recommended within 3 days.`,
+
+            routine: `Patient: Robert Johnson, Age 35
+Consultation Note - Follow-up
+
+Patient presents for routine follow-up of hypertension. Currently on Lisinopril 10mg daily.
+
+VITAL SIGNS:
+- Blood pressure: 128/82 mmHg
+- Heart rate: 72 bpm
+- Weight: 180 lbs
+
+No complaints. Blood pressure well controlled. Continue current medication. Follow-up in 6 months.`
+        };
+
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const documentText = document.getElementById('documentText');
+        const fileInput = document.getElementById('fileInput');
+        const loadingState = document.getElementById('loadingState');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const initialState = document.getElementById('initialState');
+
+        // Example buttons
+        document.querySelectorAll('.example-btn').forEach((btn, index) => {
+            btn.addEventListener('click', () => {
+                const exampleKey = ['emergency', 'highPriority', 'routine'][index];
+                documentText.value = examples[exampleKey];
+            });
+        });
+
+        // File upload
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const text = await file.text();
+                documentText.value = text;
+            }
+        });
+
+        // Analyze button
+        analyzeBtn.addEventListener('click', async () => {
+            const text = documentText.value.trim();
+
+            if (!text) {
+                alert('Please enter or upload a document first');
+                return;
+            }
+
+            // Show loading
+            initialState.classList.add('hidden');
+            resultsContainer.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+
+                if (!response.ok) throw new Error('Analysis failed');
+
+                const result = await response.json();
+                displayResults(result);
+            } catch (error) {
+                alert('Error analyzing document: ' + error.message);
+                initialState.classList.remove('hidden');
+            } finally {
+                loadingState.classList.add('hidden');
+            }
+        });
+
+        function displayResults(result) {
+            // Set urgency
+            const urgencyCard = document.getElementById('urgencyCard');
+            const urgencyLevel = document.getElementById('urgencyLevel');
+
+            urgencyLevel.textContent = result.urgency;
+
+            // Set urgency color
+            urgencyCard.className = 'rounded-2xl shadow-2xl p-6 text-white ';
+            if (result.urgency.includes('Emergency') || result.urgency.includes('🟥')) {
+                urgencyCard.classList.add('urgency-emergency');
+            } else if (result.urgency.includes('High') || result.urgency.includes('🟧')) {
+                urgencyCard.classList.add('urgency-high');
+            } else if (result.urgency.includes('Routine') || result.urgency.includes('🟨')) {
+                urgencyCard.classList.add('urgency-routine');
+            } else {
+                urgencyCard.classList.add('urgency-info');
+            }
+
+            // Configure markdown for better rendering
+            if (typeof marked !== 'undefined') {
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true,
+                });
+
+                // Render full analysis as markdown
+                const analysisHtml = marked.parse(result.analysis || 'No analysis available');
+                document.getElementById('analysisContent').innerHTML = analysisHtml;
+                document.getElementById('decisionContent').innerHTML = analysisHtml;
+            } else {
+                // Fallback if marked.js not loaded
+                document.getElementById('analysisContent').textContent = result.analysis;
+                document.getElementById('decisionContent').textContent = result.analysis;
+            }
+
+            // Set document info
+            document.getElementById('docType').textContent = result.document_type || 'Unknown';
+            document.getElementById('docStatus').textContent = result.status || 'Completed';
+
+            // Show results
+            resultsContainer.classList.remove('hidden');
+        }
+    </script>
+</body>
+
+</html>

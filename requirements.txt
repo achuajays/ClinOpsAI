@@ -1,0 +1,9 @@
+agno
+groq
+python-dotenv
+pypdf
+fastapi
+uvicorn[standard]
+python-multipart
+Pillow
+pydantic
