@@ -1,8 +1,112 @@
+<div align="center">
+
 # 🏥 ClinOps AI
 
-> **Autonomous Intelligence System for Medical Document Decisions**
+### Autonomous Intelligence System for Medical Document Decisions
+
+[![Python](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104-green.svg)](https://fastapi.tiangolo.com/)
+[![Groq](https://img.shields.io/badge/Groq-LLM-purple.svg)](https://groq.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Transform raw medical documents into actionable clinical intelligence with AI-powered decision making, urgency assessment, and explainable recommendations.
+
+[Quick Start](#-quick-start) • [Documentation](docs/) • [API Reference](docs/api.md) • [Deploy Guide](docs/deployment.md)
+
+</div>
+
+---
+
+## 📊 System Architecture
+
+```mermaid
+graph TB
+    subgraph "User Interface"
+        A[Web Browser] --> B[Tailwind CSS UI]
+    end
+    
+    subgraph "API Layer"
+        B --> C[FastAPI Server]
+        C --> D[CORS Middleware]
+        D --> E[/api/analyze Endpoint]
+    end
+    
+    subgraph "Workflow Orchestrator"
+        E --> F[ClinOpsAIWorkflow]
+        F --> G[Document Intake]
+        G --> H[AI Analysis Engine]
+        H --> I[Response Parser]
+    end
+    
+    subgraph "AI Layer"
+        H --> J[Understanding Agent]
+        J --> K[Groq LLM API]
+        K --> J
+    end
+    
+    subgraph "Data Processing"
+        I --> L[Urgency Classifier]
+        I --> M[Entity Extractor]
+        I --> N[Decision Engine]
+    end
+    
+    subgraph "Output"
+        L --> O[Structured Result]
+        M --> O
+        N --> O
+        O --> P[Markdown Renderer]
+        P --> B
+    end
+    
+    style A fill:#e1f5ff
+    style K fill:#f0e6ff
+    style O fill:#e8f5e9
+```
+
+---
+
+## 🔄 Analysis Workflow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant UI as Web Interface
+    participant API as FastAPI
+    participant WF as Workflow
+    participant AI as AI Agent
+    participant Groq as Groq LLM
+    
+    User->>UI: Submit Document
+    UI->>API: POST /api/analyze
+    API->>WF: analyze_document(text)
+    
+    rect rgb(240, 248, 255)
+        Note over WF: Step 1: Intake Processing
+        WF->>WF: Calculate hash
+        WF->>WF: Detect type
+        WF->>WF: Clean text
+    end
+    
+    rect rgb(255, 240, 245)
+        Note over WF,Groq: Step 2: AI Analysis
+        WF->>AI: run(prompt)
+        AI->>Groq: LLM Request
+        Groq-->>AI: Analysis Response
+        AI-->>WF: Markdown Text
+    end
+    
+    rect rgb(240, 255, 240)
+        Note over WF: Step 3: Parse Response
+        WF->>WF: Detect urgency
+        WF->>WF: Structure result
+    end
+    
+    WF-->>API: JSON Result
+    API-->>UI: Analysis Data
+    UI->>UI: Render Markdown
+    UI-->>User: Display Results
+```
 
 ---
 
@@ -180,6 +284,46 @@ Analyze medical document
 
 ---
 
+---
+
+## 🔀 Data Flow
+
+```mermaid
+flowchart TD
+    A[Medical Document] -->|Text Input| B{Document Type?}
+    B -->|Lab Report| C[Extract Tests & Values]
+    B -->|Consultation| D[Extract Symptoms & Findings]
+    B -->|Discharge| E[Extract Diagnoses & Plans]
+    B -->|Unknown| F[General Analysis]
+    
+    C --> G[AI Analysis]
+    D --> G
+    E --> G
+    F --> G
+    
+    G --> H{Urgency Detection}
+    H -->|🟥 Emergency| I[Immediate Action]
+    H -->|🟧 High Priority| J[Urgent Follow-up]
+    H -->|🟨 Routine| K[Standard Care]
+    H -->|🟩 Informational| L[Archive]
+    
+    I --> M[Structured Output]
+    J --> M
+    K --> M
+    L --> M
+    
+    M --> N[Markdown Rendering]
+    N --> O[User Display]
+    
+    style A fill:#e1f5ff
+    style G fill:#f0e6ff
+    style H fill:#fff9c4
+    style M fill:#e8f5e9
+    style O fill:#ffe0b2
+```
+
+---
+
 ## 🛠️ Technology Stack
 
 | Component | Technology |
@@ -283,6 +427,80 @@ MIT License - feel free to use for your own projects
 - [ ] Mobile app
 - [ ] Real-time EMR integration
 - [ ] Advanced analytics dashboard
+
+---
+
+---
+
+## 🚢 Deployment Architecture
+
+```mermaid
+graph TB
+    subgraph "Docker Compose Stack"
+        subgraph "Application"
+            A[ClinOps AI<br/>:8000]
+        end
+        
+        subgraph "ELK Stack"
+            B[Elasticsearch<br/>:9200]
+            C[Logstash<br/>:5000]
+            D[Kibana<br/>:5601]
+            E[Filebeat]
+        end
+    end
+    
+    subgraph "External Services"
+        F[Groq API<br/>LLM Service]
+    end
+    
+    subgraph "Storage"
+        G[(Elasticsearch<br/>Data)]
+        H[(/app/logs)]
+        I[(/app/uploads)]
+    end
+    
+    A -->|API Calls| F
+    A -->|Write Logs| H
+    E -->|Ship Logs| C
+    C -->|Index| B
+    B -->|Store| G
+    D -->|Query| B
+    A -->|Store Files| I
+    
+    style A fill:#667eea,color:#fff
+    style B fill:#00bfb3
+    style C fill:#f04e98
+    style D fill:#00bfb3
+    style F fill:#f0e6ff
+```
+
+### Infrastructure Components
+
+| Component | Purpose | Port |
+|-----------|---------|------|
+| **ClinOps AI** | Main application | 8000 |
+| **Elasticsearch** | Log storage & search | 9200 |
+| **Logstash** | Log processing | 5000 |
+| **Kibana** | Log visualization | 5601 |
+| **Filebeat** | Log shipping | - |
+
+### Quick Deploy
+
+```bash
+# Clone repository
+git clone <repo-url>
+cd ClinOpsAI
+
+# Set API key
+echo "GROQ_API_KEY=your_key" > .env
+
+# Start with ELK stack
+docker-compose up -d
+
+# Access services
+# - App: http://localhost:8000
+# - Kibana: http://localhost:5601
+```
 
 ---
 
