@@ -22,36 +22,36 @@ Transform raw medical documents into actionable clinical intelligence with AI-po
 
 ```mermaid
 graph TB
-    subgraph "User Interface"
+    subgraph UI[User Interface]
         A[Web Browser] --> B[Tailwind CSS UI]
     end
     
-    subgraph "API Layer"
+    subgraph API[API Layer]
         B --> C[FastAPI Server]
         C --> D[CORS Middleware]
-        D --> E[/api/analyze Endpoint]
+        D --> E[API Endpoint]
     end
     
-    subgraph "Workflow Orchestrator"
+    subgraph WF[Workflow Orchestrator]
         E --> F[ClinOpsAIWorkflow]
         F --> G[Document Intake]
         G --> H[AI Analysis Engine]
         H --> I[Response Parser]
     end
     
-    subgraph "AI Layer"
+    subgraph AI[AI Layer]
         H --> J[Understanding Agent]
         J --> K[Groq LLM API]
         K --> J
     end
     
-    subgraph "Data Processing"
+    subgraph DP[Data Processing]
         I --> L[Urgency Classifier]
         I --> M[Entity Extractor]
         I --> N[Decision Engine]
     end
     
-    subgraph "Output"
+    subgraph OUT[Output]
         L --> O[Structured Result]
         M --> O
         N --> O
@@ -436,27 +436,27 @@ MIT License - feel free to use for your own projects
 
 ```mermaid
 graph TB
-    subgraph "Docker Compose Stack"
-        subgraph "Application"
-            A[ClinOps AI<br/>:8000]
+    subgraph STACK[Docker Compose Stack]
+        subgraph APP[Application]
+            A[ClinOps AI :8000]
         end
         
-        subgraph "ELK Stack"
-            B[Elasticsearch<br/>:9200]
-            C[Logstash<br/>:5000]
-            D[Kibana<br/>:5601]
+        subgraph ELK[ELK Stack]
+            B[Elasticsearch :9200]
+            C[Logstash :5000]
+            D[Kibana :5601]
             E[Filebeat]
         end
     end
     
-    subgraph "External Services"
-        F[Groq API<br/>LLM Service]
+    subgraph EXT[External Services]
+        F[Groq API LLM]
     end
     
-    subgraph "Storage"
-        G[(Elasticsearch<br/>Data)]
-        H[(/app/logs)]
-        I[(/app/uploads)]
+    subgraph STOR[Storage]
+        G[(Elasticsearch Data)]
+        H[(App Logs)]
+        I[(Uploads)]
     end
     
     A -->|API Calls| F
